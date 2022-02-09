@@ -18,6 +18,7 @@
   },
   "homepage": "https://github.com/BUButtercup/employee_tracker#readme",
   "dependencies": {
+    "colors": "^1.4.0",
     "console.table": "^0.10.0",
     "dotenv": "^16.0.0",
     "inquirer": "^8.2.0",

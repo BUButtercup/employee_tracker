@@ -15,7 +15,7 @@ VALUES  ('Gift Shop', 2),
 
 INSERT INTO role (title, salary, department_id)
 VALUES  ('Owner', 150000.00, 1),
-        ('Financial Officer', 80000.00, 1),
+        ('Financial Manager', 80000.00, 1),
         ('Manager', 80000.00, 1),
         ('Cashier', 20.00, 2),
         ('Yard Crew', 15.00, 2),
