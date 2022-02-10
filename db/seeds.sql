@@ -13,15 +13,15 @@ VALUES  ('Gift Shop', 2),
 
         
 
-INSERT INTO role (title, salary, department_id)
-VALUES  ('Owner', 150000.00, 1),
-        ('Financial Manager', 80000.00, 1),
-        ('Manager', 80000.00, 1),
-        ('Cashier', 20.00, 2),
-        ('Yard Crew', 15.00, 2),
-        ('Horticulturist', 35.00, 3),
-        ('Seasonal Nursery Staff', 15.00, 3),
-        ('Education Coordinator', 70000.00, 4);
+INSERT INTO role (title, salary, department_id, subdept)
+VALUES  ('Owner', 150000.00, 1, null),
+        ('Financial Manager', 80000.00, 1, null),
+        ('Manager', 80000.00, 1, null),
+        ('Cashier', 20.00, 2,'Gift Shop'),
+        ('Yard Crew', 15.00, 2,'Hard Goods'),
+        ('Horticulturist', 35.00, 3, null),
+        ('Seasonal Nursery Staff', 15.00, 3, null),
+        ('Education Coordinator', 70000.00, 4, null);
 
 INSERT INTO employee (first_name, last_name, role_id, subdept_id, manager_id)
 VALUES  ('Brad', 'Joules', 1, null, null),

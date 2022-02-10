@@ -12,8 +12,13 @@ const makeGreen = str => {
     return str.green.bold
 }
 
+const addDivide = () => {
+    console.log(makeGreen('*******************************************************************************************************************************'));
+}
+
 module.exports={
     important,
     oops,
-    makeGreen
+    makeGreen,
+    addDivide
 }
