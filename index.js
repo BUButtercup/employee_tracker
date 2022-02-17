@@ -17,14 +17,14 @@ const init = () => {
         inquirer.prompt(ques.whatNowQues)
         .then (ans => {
             if (ans.task === 'View all departments'){
-                db.query('SELECT department.id AS dept_id, department.name AS dept_name, subdept.name as covered_subdept FROM department LEFT JOIN subdept ON department.id=department_id',(err, res, fields)=>{
+                db.query('SELECT department.id AS \'Department ID\', department.name AS \'Department Name\', IFNULL(subdept.name, \'N/A\') AS \'Work Area\' FROM department LEFT JOIN subdept ON department.id=department_id',(err, res, fields)=>{
                     if (err){ throw err }
                     console.table(res);
                     whatNow();
                 })
             }
             if (ans.task === 'View all roles'){
-                db.query('SELECT title AS job_title, role.id AS id, department.name AS department, salary AS pay FROM role LEFT JOIN department ON role.department_id=department.id ORDER BY department.name', (err, res, fields)=> {
+                db.query('SELECT title AS \'Role Title\', role.id AS \'Role ID\', department.name AS Department, salary AS Pay FROM role LEFT JOIN department ON role.department_id=department.id ORDER BY department.name', (err, res, fields)=> {
                     if(err) { throw err }
                     console.table(res)
                     whatNow();
@@ -58,7 +58,7 @@ const init = () => {
                         }
                         const staffName = 'staff_tb.last_name, \', \', staff_tb.first_name';
                         const manName = 'man_tb.last_name, \', \', man_tb.first_name';
-                        db.query(`SELECT staff_tb.id AS EID, (CONCAT(${staffName})) AS \'Name (last, first)\', title AS \'Job Title\', IFNULL(subdept.name, \'N/A\') AS \'Work Area\', department.name AS Department, salary AS Pay, IFNULL(CONCAT(${manName}), \'Top Manager\') AS Manager FROM employee staff_tb LEFT JOIN role ON role_id=role.id LEFT JOIN subdept ON subdept_id=subdept.id LEFT JOIN department ON subdept.department_id=department.id LEFT JOIN employee man_tb ON staff_tb.manager_id=man_tb.id ORDER BY ${sortChoice} ASC;`, (err, res, fields)=>{
+                        db.query(`SELECT staff_tb.id AS EID, (CONCAT(${staffName})) AS \'Name (last, first)\', title AS \'Job Title\', IFNULL(subdept.name, \'N/A\') AS \'Work Area\', department.name AS Department, salary AS Pay, IFNULL(CONCAT(${manName}), \'Top Manager\') AS Manager FROM employee staff_tb LEFT JOIN role ON role_id=role.id LEFT JOIN subdept ON subdept_id=subdept.id LEFT JOIN department ON role.department_id=department.id LEFT JOIN employee man_tb ON staff_tb.manager_id=man_tb.id ORDER BY ${sortChoice} ASC;`, (err, res, fields)=>{
                             if (err) { throw err }
                             const notifyUser = (res) => {
                                 console.table(res)
@@ -481,22 +481,22 @@ const init = () => {
                             })                                      
                         }
                         if(response.whichInfo==='Work Area'){
-                            db.query(`SELECT name FROM subdept JOIN employee ON subdept.id=subdept_id WHERE eployee.id=${eid}`, (err, res)=>{
+                            db.query(`SELECT title FROM role JOIN employee ON role.id=role_id WHERE employee.id=${EID}`, (err, res)=>{
                                 if(err){throw err}
-                                if(!ques.multSDRoles.filter(role=>role===res[0].name)){
-                                    console.log(col.oops('This employee\'s role is not eligible to be assigned to more than one subdept.'));
+                                if((ques.multSDRoles.filter(role=>role===res[0].title)).length<1){
+                                    console.log(col.oops('This employee\'s role only works in one work area. \nIf the employee\'s role has changed, please choose the \"Role\" option in the \"Update an employee\" menu.\nDuring this process, if their new role may be assigned to more than one work area, \nyou will be asked to select it then.'));
                                     whatNow();
                                 } else {
                                     inquirer.prompt({name: 'newWA', type:'list', choices: [...ques.subDeptChoices],  message: 'Which work area would you like to assign this employee to?'}).then(ans=>{
-                                        db.query(`SELECT subdept.id, employee.id FROM subdept JOIN employee ON subdept.id=subdept_id WHERE subdept.name=${ans.newWA} AND employee.role_id=3;`, (err, response)=>{
+                                        db.query(`SELECT subdept.id AS subdeptID, employee.id AS empID FROM subdept JOIN employee ON subdept.id=subdept_id WHERE subdept.name="${ans.newWA}" AND employee.role_id=3;`, (err, response)=>{
                                             if(err){throw err}
-                                            const subDID = response[0].sudept.id;
-                                            const manID = response[0].employee.id;
-                                            db.query(`UPDATE employee SET subdept_id=?, manager_id=? WHERE id=${eid}`, [subDID, manID],(err, result)=>{
+                                            const subDID = response[0].subdeptID;
+                                            const manID = response[0].empID;
+                                            db.query(`UPDATE employee SET subdept_id=?, manager_id=? WHERE id=${EID}`, [subDID, manID],(err, result)=>{
                                                 if(err){throw err}
                                                 const staffName3 = 'staff_tb.last_name, \', \', staff_tb.first_name';
                                                 const manName3 = 'man_tb.last_name, \', \', man_tb.first_name';
-                                                db.query(`SELECT (CONCAT(${staffName3})) AS Name, id, role AS Role, supdept.name AS 'Work Area', department.name AS Department, salary AS Pay, IFNULL(CONCAT(${manName3}), \'Top Manager\') AS Manager FROM employee staff_tb LEFT JOIN role ON role_id=role.id LEFT JOIN subdept ON subdept_id=subdept.id LEFT JOIN department ON IFNULL(subdept.department_id=department.id, role.department_id=department.id) LEFT JOIN employee man_tb ON staff_tb.manager_id=man_tb.id WHERE staff_tb.id="${eid}";`, (err, re)=>{
+                                                db.query(`SELECT (CONCAT(${staffName3})) AS Name, staff_tb.id, role.title AS Role, subdept.name AS 'Work Area', department.name AS Department, salary AS Pay, IFNULL(CONCAT(${manName3}), \'Top Manager\') AS Manager FROM employee staff_tb LEFT JOIN role ON role_id=role.id LEFT JOIN subdept ON subdept_id=subdept.id LEFT JOIN department ON IFNULL(subdept.department_id=department.id, role.department_id=department.id) LEFT JOIN employee man_tb ON staff_tb.manager_id=man_tb.id WHERE staff_tb.id="${EID}";`, (err, re)=>{
                                                     if(err){throw err}
                                                     console.table(re);
                                                     console.log(`The employee's work area has been updated.`.bold);
@@ -519,8 +519,7 @@ const init = () => {
                         if(res.length<1){
                             console.log(col.oops(`You entered ${ans.whichEmpLast}. There are no employees in the database with this last name.`));
                             whatNow();
-                        }
-                        if(res.length>1){
+                        } else if(res.length>1){
                             for(let i=0; i<res.length; i++){
                                 const emp = {
                                     name: res[i].Name,
