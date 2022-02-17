@@ -109,8 +109,6 @@ const init = () => {
                                                 db.query(`INSERT INTO subdept (name, department_id) VALUES (?, ?)`, [res.subDeptName, deptID], (err, result)=>{
                                                     if(err){throw err}
                                                     ques.subDeptChoices.push(res.subDeptName);
-                                                    console.log(ques.subDeptChoices);
-                                                    // console.log(important(`${res.subDeptName} has been added and assigned to the ${ans.add} department.`))
                                                     if(res.another){
                                                         console.log(col.important(`${res.subDeptName} has been added and assigned to the ${ans.add} department.`))
                                                         createSD();
@@ -352,22 +350,7 @@ const init = () => {
                                 })
                             }
                         }
-                        // if ((ans.newERole='Manager')||(ans.newERole='Horticulturist')||(ans.newERole='Manager')){
-
-                            // db.query(`INSERT INTO employee (first_name, last_name) VALUES (?, ?)`, [ans.firstName, ans.lastName], (err, result)=>{
-                            //     if(err){throw err}
-                            //     db.query(`SELECT * FROM employee`, (err, res, fields)=>{
-                            //         console.table(res);
-                            //     })
-                            // })
-                        // }
-                        // {
-                        //     name: 'subdept',
-                        //     type: 'list',
-                        //     choices: areaChoices,
-                        //     message: 'What work area will the employee be in?'
-                     
-                    })   // }
+                    })  
                 })
             }
             if (ans.task==='Update an employee'){

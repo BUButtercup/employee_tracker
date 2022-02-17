@@ -17,7 +17,7 @@ const sameLastName = [];
 const whatNowQues =[{
     name: 'task', 
     type: 'list', 
-    choices: ['View all departments', 'View all roles', 'View all employees', 'Add a department', 'Add a new work area', 'Add a role', 'Add a new employee', 'Update an employee', 'Exit the program'], 
+    choices: ['View all departments', 'View all roles', 'View all employees', 'Add a department', 'Add a role', 'Add a new employee', 'Update an employee', 'Exit the program'], 
     message: 'What would you like to do?'
 }]
 
