@@ -23,7 +23,7 @@ I learned a great deal about debugging and manipulating mySQL queries during thi
 ## Instructions for Use
 <ol><li>Ensure that your computer has node.js installed, clone/fork repos to your local computer, open in code editor, in terminal opened at level of index.js install the npm packages, modify the .env file to hold your personal information.</li><li>Open up terminal at level of db, log into mysql, run schema.sql and seeds.sql.</li><li>Return to index.js terminal, initiate the program w/ ‘node index.js’ command.</li><li>You will be prompted to select a task you would like to complete. </li><img src="./images/step_4.png" alt="Main Menu" title="Main Menu" width="200px"><li>Each task has its own set of instructions. Just following them along will lead you to complete the task, at the end of which you will be presented with a table showing you the results.</li><img src="./images/step_5.png" alt="Result" title="Result" width="200px"><li>You may exit the program at any time from the main menu.</li></ol>
 
-Here is a [video walkthrough]().
+Here is a [video walkthrough](https://drive.google.com/file/d/1gmUmJAMcrN-CGIeM2IVM_R6FSCym0Foz/view?usp=sharing).
 
 
 
