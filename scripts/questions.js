@@ -12,10 +12,12 @@ const multSDRoles = ['Manager', 'Horticulturist', 'Seasonal Nursery Staff'];
 
 const singleSDRoles = ['Cashier', 'Yard Crew'];
 
+const sameLastName = [];
+
 const whatNowQues =[{
     name: 'task', 
     type: 'list', 
-    choices: ['View all departments', 'View all roles', 'View all employees', 'Add a department', 'Add a new work area', 'Add a role', 'Add a new employee', 'Update an employee role', 'Exit the program'], 
+    choices: ['View all departments', 'View all roles', 'View all employees', 'Add a department', 'Add a new work area', 'Add a role', 'Add a new employee', 'Update an employee', 'Exit the program'], 
     message: 'What would you like to do?'
 }]
 
@@ -99,6 +101,17 @@ const newEmpQues = [{
     message: 'What job will the employee hold?'
 }];
 
+const editEmpQues =[{
+    name:'whichEmpLast', 
+    type:'input', 
+    message:'What is the last name of the employee you need to edit?'
+}]
+
+const editEmpQCont = [{
+    name:'whichInfo',
+    type:'list',
+    choices:['Name', 'Role', 'Work Area', 'Exit']
+}]
 
 module.exports = {
     whatNowQues,
@@ -107,10 +120,13 @@ module.exports = {
     newSDQues,
     roleQues,
     newEmpQues,
+    editEmpQues,
+    editEmpQCont,
     deptChoices,
     subDeptChoices,
     roleChoices,
     multSDRoles,
     singleSDRoles,
-    noSDRoles
+    noSDRoles,
+    sameLastName
 }

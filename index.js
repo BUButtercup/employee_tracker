@@ -222,6 +222,13 @@ const init = () => {
                                     db.query(`INSERT INTO role (title, salary, department_id, subdept) VALUES (?, ?, ?, ?)`, [ans.title, ans.salary, deptID, null], (err, result)=>{
                                         if(err){throw err}
                                     });
+                                    ques.roleChoices.push(ans.title)
+                                    if(ans.subdeptCov==='This role has no particular work area'){
+                                        ques.noSDRoles.push(ans.title)
+                                    }
+                                    if(ans.subdeptCov==='This role could be assigned to multiple work areas'){
+                                        ques.multSDRoles.push(ans.title)
+                                    }
                                 }
                                 if(ans.subdeptCov==='This role is only assigned to one work area'){
                                     inquirer.prompt({name:'whichSD', type:'list', choices: [...ques.subDeptChoices], message: 'Which work area should this role always be assigned to?'}).then(response=>{
@@ -361,6 +368,190 @@ const init = () => {
                         //     message: 'What work area will the employee be in?'
                      
                     })   // }
+                })
+            }
+            if (ans.task==='Update an employee'){
+                const changeEmployee = eid =>{
+                    const EID = eid;
+                    inquirer.prompt(ques.editEmpQCont).then(response => {
+                        if(response.whichInfo==='Name'){
+                            inquirer.prompt({name:'whichName', type:'list', choices:['First', 'Last'], message: 'Which name do you need to change?'}).then(result=>{
+                                if(result.whichName==='First'){
+                                    inquirer.prompt({name:'newFirst', type:'input', message: 'What is their new first name?'}).then(data=>{
+                                        db.query(`UPDATE employee SET first_name=? WHERE id=${EID}`, [data.newFirst], (err, answer)=>{
+                                            if(err){throw err}
+                                            db.query(`SELECT (CONCAT(last_name, \', \', first_name)) AS Name, id FROM employee WHERE id="${EID}";`, (err, re)=>{
+                                                if(err){throw err}
+                                                console.table(re);
+                                                console.log(`The employee's first name has been updated.`.bold);
+                                                whatNow();
+                                            });
+                                        });
+
+                                    })
+                                }
+                                if(result.whichName==='Last'){
+                                    inquirer.prompt({name:'newLast', type:'input', message: 'What is their new last name?'}).then(data=>{
+                                        db.query(`UPDATE employee SET last_name=? WHERE id=${EID}`, [data.newLast], (err, answer)=>{
+                                            if(err){throw err}
+                                            db.query(`SELECT (CONCAT(last_name, \', \', first_name)) AS Name, id FROM employee WHERE id="${EID}";`, (err, re)=>{
+                                                if(err){throw err}
+                                                console.table(re);
+                                                console.log(`The employee's last name has been updated.`.bold);
+                                                whatNow();
+                                            })
+                                        })
+                                    })
+                                }
+                            })
+                        }
+                        if(response.whichInfo==='Role'){
+                            inquirer.prompt({name:'newRole', type:'list', choices:[...ques.roleChoices], message:'Which role would you like to assign the employee?'}).then(ans=>{
+                                const newRole = ans.newRole;
+                                if ((ques.multSDRoles.filter(role=>role===ans.newRole)).length>0){
+                                    inquirer.prompt({name: 'whichSD', type: 'list', choices: [...ques.subDeptChoices], message: 'Which work area will this employee\'s new role report to?'}).then(ans=>{
+                                        db.query(`SELECT id FROM subdept WHERE name="${ans.whichSD}"`, (err, response)=>{
+                                            if(err){throw err}
+                                            const subDID = response[0].id;
+                                            db.query(`SELECT id FROM employee WHERE role_id=3 AND subdept_id=${subDID}`, (err, result)=>{
+                                                if(err){throw err}
+                                                const manID = result[0].id;
+                                                db.query(`SELECT id FROM role WHERE title="${newRole}"`, (err, res)=>{
+                                                    if(err){throw err}
+                                                    const roleID2 = res[0].id;
+                                                    db.query(`UPDATE employee SET role_id=?, subdept_id=?, manager_id=? WHERE id=${EID}`, [roleID2, subDID, manID],(err, answer)=>{
+                                                        if(err){throw err}
+                                                        const staffName3 = 'staff_tb.last_name, \', \', staff_tb.first_name';
+                                                        const manName3 = 'man_tb.last_name, \', \', man_tb.first_name';
+                                                        db.query(`SELECT (CONCAT(${staffName3})) AS Name, staff_tb.id, role.title AS Role, subdept.name AS 'Work Area', department.name AS Department, salary AS Pay, IFNULL(CONCAT(${manName3}), \'Top Manager\') AS Manager FROM employee staff_tb LEFT JOIN role ON role_id=role.id LEFT JOIN subdept ON subdept_id=subdept.id LEFT JOIN department ON IFNULL(subdept.department_id=department.id, role.department_id=department.id) LEFT JOIN employee man_tb ON staff_tb.manager_id=man_tb.id WHERE staff_tb.id="${EID}";`, (err, re)=>{
+                                                            if(err){throw err}
+                                                            console.table(re);
+                                                            console.log(`The employee's role, work area, department, salary, and manager have been updated.`.bold);
+                                                            whatNow();
+                                                        });
+                                                    });
+                                                });
+                                            });
+                                        });
+                                    })
+                                } else if((ques.singleSDRoles.filter(role=>role===ans.newRole)).length>0){
+                                    db.query(`SELECT subdept FROM role WHERE title="${ans.newRole}"`, (err, res)=>{
+                                        if(err){throw err}
+                                        db.query(`SELECT id FROM subdept WHERE name="${res[0].subdept}"`, (err, response)=>{
+                                            if(err){throw err}
+                                            const subDID = response[0].id;
+                                            db.query(`SELECT id FROM employee WHERE role_id=3 AND subdept_id=${subDID}`, (err, result)=>{
+                                                if(err){throw err}
+                                                const manID = result[0].id;
+                                                db.query(`SELECT id FROM role WHERE title="${ans.newRole}"`, (err, res)=>{
+                                                    if(err){throw err}
+                                                    const roleID = res[0].id;
+                                                    db.query(`UPDATE employee SET role_id=?, subdept_id=?, manager_id=? WHERE id=${EID}`, [roleID,subDID, manID], (err, answer)=>{
+                                                        if(err){throw err}
+                                                        const staffName3 = 'staff_tb.last_name, \', \', staff_tb.first_name';
+                                                        const manName3 = 'man_tb.last_name, \', \', man_tb.first_name';
+                                                        db.query(`SELECT (CONCAT(${staffName3})) AS Name, staff_tb.id, role.title AS Role, subdept.name AS 'Work Area', department.name AS Department, salary AS Pay, IFNULL(CONCAT(${manName3}), \'Top Manager\') AS Manager FROM employee staff_tb LEFT JOIN role ON role_id=role.id LEFT JOIN subdept ON subdept_id=subdept.id LEFT JOIN department ON IFNULL(subdept.department_id=department.id, role.department_id=department.id) LEFT JOIN employee man_tb ON staff_tb.manager_id=man_tb.id WHERE staff_tb.id="${EID}";`, (err, re)=>{
+                                                            if(err){throw err}
+                                                            console.table(re);
+                                                            console.log(`The employee's role, work area, department, salary, and manager have been updated.`.bold);
+                                                            whatNow();
+                                                        })
+                                                    })
+                                                })
+
+                                            })
+                                        })
+                                    })
+                                } else {
+                                    db.query(`SELECT id FROM role WHERE title="${ans.newRole}"`, (err, res)=>{
+                                        if(err){throw err}
+                                        db.query(`UPDATE employee SET role_id=?, subdept_id=null, manager_id=1 WHERE id=${EID}`, [res[0].id],(err, re)=>{
+                                            if(err){throw err}
+                                            const staffName3 = 'staff_tb.last_name, \', \', staff_tb.first_name';
+                                            const manName3 = 'man_tb.last_name, \', \', man_tb.first_name';
+                                            db.query(`SELECT (CONCAT(${staffName3})) AS Name, staff_tb.id, role.title AS Role, IFNULL(subdept.name, \'N/A\') AS 'Work Area', department.name AS Department, salary AS Pay, IFNULL(CONCAT(${manName3}), \'Top Manager\') AS Manager FROM employee staff_tb LEFT JOIN role ON role_id=role.id LEFT JOIN subdept ON subdept_id=subdept.id LEFT JOIN department ON IFNULL(subdept.department_id=department.id, role.department_id=department.id) LEFT JOIN employee man_tb ON staff_tb.manager_id=man_tb.id WHERE staff_tb.id="${EID}";`, (err, re)=>{
+                                                if(err){throw err}
+                                                console.table(re);
+                                                console.log(`The employee's role, work area, department, salary, and manager have been updated.`.bold);
+                                                whatNow();
+                                            })
+                                        })
+                                    })
+                                }                                
+                            })                                      
+                        }
+                        if(response.whichInfo==='Work Area'){
+                            db.query(`SELECT name FROM subdept JOIN employee ON subdept.id=subdept_id WHERE eployee.id=${eid}`, (err, res)=>{
+                                if(err){throw err}
+                                if(!ques.multSDRoles.filter(role=>role===res[0].name)){
+                                    console.log(col.oops('This employee\'s role is not eligible to be assigned to more than one subdept.'));
+                                    whatNow();
+                                } else {
+                                    inquirer.prompt({name: 'newWA', type:'list', choices: [...ques.subDeptChoices],  message: 'Which work area would you like to assign this employee to?'}).then(ans=>{
+                                        db.query(`SELECT subdept.id, employee.id FROM subdept JOIN employee ON subdept.id=subdept_id WHERE subdept.name=${ans.newWA} AND employee.role_id=3;`, (err, response)=>{
+                                            if(err){throw err}
+                                            const subDID = response[0].sudept.id;
+                                            const manID = response[0].employee.id;
+                                            db.query(`UPDATE employee SET subdept_id=?, manager_id=? WHERE id=${eid}`, [subDID, manID],(err, result)=>{
+                                                if(err){throw err}
+                                                const staffName3 = 'staff_tb.last_name, \', \', staff_tb.first_name';
+                                                const manName3 = 'man_tb.last_name, \', \', man_tb.first_name';
+                                                db.query(`SELECT (CONCAT(${staffName3})) AS Name, id, role AS Role, supdept.name AS 'Work Area', department.name AS Department, salary AS Pay, IFNULL(CONCAT(${manName3}), \'Top Manager\') AS Manager FROM employee staff_tb LEFT JOIN role ON role_id=role.id LEFT JOIN subdept ON subdept_id=subdept.id LEFT JOIN department ON IFNULL(subdept.department_id=department.id, role.department_id=department.id) LEFT JOIN employee man_tb ON staff_tb.manager_id=man_tb.id WHERE staff_tb.id="${eid}";`, (err, re)=>{
+                                                    if(err){throw err}
+                                                    console.table(re);
+                                                    console.log(`The employee's work area has been updated.`.bold);
+                                                    whatNow();
+                                                })
+                                            })
+                                        })
+                                    })
+                                }
+                            })
+                        }
+                        if(response.whichInfo==='Exit'){
+                            whatNow()
+                        }
+                    })
+                }
+                inquirer.prompt(ques.editEmpQues).then(ans=>{
+                    db.query(`SELECT (CONCAT(last_name, \', \', first_name)) AS Name, id FROM employee WHERE last_name="${ans.whichEmpLast}";`, (err, res)=>{
+                        if(err){throw err}
+                        if(res.length<1){
+                            console.log(col.oops(`You entered ${ans.whichEmpLast}. There are no employees in the database with this last name.`));
+                            whatNow();
+                        }
+                        if(res.length>1){
+                            for(let i=0; i<res.length; i++){
+                                const emp = {
+                                    name: res[i].Name,
+                                    id: res[i].id
+                                }
+                                ques.sameLastName.push(emp);
+                            }
+                            console.log(ques.sameLastName);
+                            if(ques.sameLastName.length>1){
+                                inquirer.prompt({name: 'whichEmp', type: 'list', choices: [...ques.sameLastName], message:'which of these employees do you need to edit?'}).then(ans=>{
+                                    const eidArr = ques.sameLastName.filter(obj=> {if(obj.name===ans.whichEmp){return obj.id}})
+                                    const EID = eidArr[0].id
+                                    console.log(`You will be editing ${ans.whichEmp}.`)
+                                    console.log(`Their EID is ${EID}`)
+                                    // ques.sameLastName = [];
+                                    changeEmployee(EID);
+                                })
+                            }
+                        }else{
+                            const staffName4 = 'staff_tb.last_name, \', \', staff_tb.first_name';
+                            db.query(`SELECT (CONCAT(${staffName4})) AS Name, id AS EDI FROM employee WHERE last_name="${ans.whichEmpLast}";`, (err, re)=>{
+                                console.table(res)
+                                inquirer.prompt({name: 'confEmp', type: 'confirm', message:'Is this the employee you would like to edit?'}).then(data=>{
+                                    if(data.confEmp===true){
+                                    changeEmployee(res[0].id)
+                                    } else {whatNow()}
+                                })
+                            })
+                        }                     
+                    })
+                   
                 })
             }
             if (ans.task==='Exit the program'){

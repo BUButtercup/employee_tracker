@@ -22,9 +22,7 @@ CREATE TABLE role (
     title VARCHAR(30),
     salary DECIMAL NOT NULL,
     department_id INT,
-    single_sd BOOLEAN,
     subdept VARCHAR(30),
-    multiple_sd BOOLEAN,
     FOREIGN KEY (department_id)
     REFERENCES department(id)
 );
